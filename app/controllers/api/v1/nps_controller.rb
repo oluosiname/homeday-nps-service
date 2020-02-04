@@ -1,12 +1,12 @@
 class Api::V1::NpsController < ApplicationController
   def create
-    nps = Nps.new(nps_params)
-    begin
-      nps.save!
-    rescue
+    nps = Nps.find_or_initialize_by(nps_params.except(:score))
 
+    if nps.update(score: nps_params[:score])
+      render json: nps, status: 201
+    else
+      render json: { error: nps.errors.full_messages }, status: 400
     end
-    render json: nps, status: 201
   end
 
   private

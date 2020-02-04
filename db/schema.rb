@@ -24,7 +24,7 @@ ActiveRecord::Schema.define(version: 20200204122437) do
     t.string "respondent_class"
     t.integer "object_id"
     t.string "object_class"
-    t.index ["score", "respondent_id", "respondent_class", "object_id", "object_class", "touchpoint"], name: "index_nps_on_respondent_and_object", unique: true
+    t.index ["score", "respondent_id", "respondent_class", "object_id", "object_class", "touchpoint"], name: "index_nps_on_respondent_and_object"
   end
 
 end
