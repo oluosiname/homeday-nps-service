@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20200204102602) do
+ActiveRecord::Schema.define(version: 20200204122437) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -20,6 +20,11 @@ ActiveRecord::Schema.define(version: 20200204102602) do
     t.string "touchpoint"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "respondent_id"
+    t.string "respondent_class"
+    t.integer "object_id"
+    t.string "object_class"
+    t.index ["score", "respondent_id", "respondent_class", "object_id", "object_class", "touchpoint"], name: "index_nps_on_respondent_and_object", unique: true
   end
 
 end
