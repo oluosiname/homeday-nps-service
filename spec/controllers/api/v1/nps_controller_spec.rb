@@ -1,6 +1,8 @@
 require 'rails_helper'
 
 RSpec.describe Api::V1::NpsController, type: :request do
+  subject { post '/api/v1/nps', params: params }
+
   describe 'POST api/v1/nps' do
     let(:params) do
       {
@@ -15,7 +17,7 @@ RSpec.describe Api::V1::NpsController, type: :request do
     let(:score) { 5 }
 
     it 'creates a new nps' do
-      expect { post '/api/v1/nps', params: params }.to change { Nps.count }.by(1)
+      expect { subject }.to change { Nps.count }.by(1)
 
       expect(response.status).to eq(201)
     end
@@ -24,7 +26,7 @@ RSpec.describe Api::V1::NpsController, type: :request do
       let!(:nps) { create(:np, object_id: 1) }
 
       it 'updates score' do
-        expect { post '/api/v1/nps', params: params }.to(
+        expect { subject }.to(
               avoid_changing { Nps.count }
               .and(change { nps.reload.score }.from(3).to(5))
             )
@@ -37,24 +39,23 @@ RSpec.describe Api::V1::NpsController, type: :request do
       context 'score not in range' do
         let(:score) { 12 }
 
-        it 'returns error' do
-          expect { post '/api/v1/nps', params: params }.to_not change { Nps.count }
-
-          expect(response.status).to eq(400)
-          expect(json_body).to eq ({'error' => ['Score must be a number between 0 and 10'] })
-        end
+        it_behaves_like 'a request with invalid params', 'Score must be a number between 0 and 10'
       end
 
       context 'missing params' do
-        before { params.delete(:touchpoint) }
+        parameters = [
+                       { name: :touchpoint, error: "Touchpoint can't be blank" },
+                     ]
+        parameters.each do |parameter|
 
-        it 'returns error' do
-          expect { post '/api/v1/nps', params: params }.to_not change { Nps.count }
+          context "missing #{parameter[:name]}" do
+            before { params.delete(parameter[:name]) }
 
-          expect(response.status).to eq(400)
-          expect(json_body).to eq ({'error' => ["Touchpoint can't be blank"] })
+            it_behaves_like 'a request with invalid params', parameter[:error]
+          end
         end
       end
     end
   end
 end
+
