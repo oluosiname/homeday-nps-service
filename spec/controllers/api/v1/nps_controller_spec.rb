@@ -62,5 +62,34 @@ RSpec.describe Api::V1::NpsController, type: :request do
       end
     end
   end
+
+  describe 'GET api/v1/nps' do
+    subject { get '/api/v1/nps', params: params }
+    let(:params) do
+      {
+        touchpoint: 'realtor_feedback',
+        respondent_class: 'seller',
+        object_class: 'realtor'
+      }
+    end
+
+    let!(:saved_nps) { create(:np, object_id: 1) }
+
+    it 'returns all matching nps' do
+      subject
+
+      expect(json_body).to eq ([
+        {
+          "id" => saved_nps.id,
+          "object_class" => saved_nps.object_class,
+          "object_id" => saved_nps.object_id,
+          "respondent_id" => saved_nps.respondent_id,
+          "respondent_class" => saved_nps.respondent_class,
+          "score" => saved_nps.score,
+          "touchpoint" => saved_nps.touchpoint
+        }
+      ])
+    end
+  end
 end
 
