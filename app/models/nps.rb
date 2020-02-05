@@ -6,4 +6,12 @@ class Nps < ApplicationRecord
               scope: [:touchpoint, :object_class, :object_id, :respondent_class, :respondent_id],
               message: 'already recorded'
             }
+
+  def oid
+    self[:object_id]
+  end
+
+  def object_id
+    super
+  end
 end
