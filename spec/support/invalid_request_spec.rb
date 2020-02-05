@@ -3,6 +3,6 @@ RSpec.shared_examples 'a request with invalid params' do |error|
     expect { subject }.to_not change { Nps.count }
 
     expect(response.status).to eq(400)
-    expect(json_body).to eq ({'error' => [error] })
+    expect(json_body['error']).to include(error)
   end
 end

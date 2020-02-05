@@ -45,6 +45,11 @@ RSpec.describe Api::V1::NpsController, type: :request do
       context 'missing params' do
         parameters = [
                        { name: :touchpoint, error: "Touchpoint can't be blank" },
+                       { name: :score, error: "Score can't be blank" },
+                       { name: :object_id, error: "Object can't be blank" },
+                       { name: :object_class, error: "Object class can't be blank" },
+                       { name: :respondent_id, error: "Respondent can't be blank" },
+                       { name: :respondent_class, error: "Respondent class can't be blank" },
                      ]
         parameters.each do |parameter|
 
