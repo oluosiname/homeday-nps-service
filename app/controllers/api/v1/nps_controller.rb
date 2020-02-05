@@ -13,6 +13,9 @@ class Api::V1::NpsController < ApplicationController
     nps = Nps.where(nps_fetch_params)
 
     render json: nps, status: 200
+
+  rescue ActionController::ParameterMissing => e
+    render json: e, status: 400
   end
 
   private

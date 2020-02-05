@@ -90,6 +90,61 @@ RSpec.describe Api::V1::NpsController, type: :request do
         }
       ])
     end
+
+    context 'touchpoint not passed' do
+      let(:params) do
+        {
+          respondent_class: 'seller',
+          object_class: 'realtor'
+        }
+      end
+
+      it 'returns all matching nps' do
+        subject
+
+        expect(json_body).to eq ('param is missing or the value is empty: touchpoint')
+      end
+    end
+
+    context 'touchpoint is empty' do
+      let(:params) do
+        {
+          touchpoint: '',
+          respondent_class: 'seller',
+          object_class: 'realtor'
+        }
+      end
+
+      it 'returns all matching nps' do
+        subject
+
+        expect(json_body).to eq ('param is missing or the value is empty: touchpoint')
+      end
+    end
+
+    context 'optional params not passed' do
+      let(:params) do
+        {
+          touchpoint: 'realtor_feedback'
+        }
+      end
+
+      it 'returns all matching nps' do
+        subject
+
+        expect(json_body).to eq ([
+          {
+            "id" => saved_nps.id,
+            "object_class" => saved_nps.object_class,
+            "object_id" => saved_nps.object_id,
+            "respondent_id" => saved_nps.respondent_id,
+            "respondent_class" => saved_nps.respondent_class,
+            "score" => saved_nps.score,
+            "touchpoint" => saved_nps.touchpoint
+          }
+        ])
+      end
+    end
   end
 end
 
