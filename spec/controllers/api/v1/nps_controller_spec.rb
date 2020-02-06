@@ -1,7 +1,11 @@
 require 'rails_helper'
 
 RSpec.describe Api::V1::NpsController, type: :request do
-  subject { post '/api/v1/nps', params: params }
+  subject { post '/api/v1/nps', params: params,  headers: { 'HTTP_AUTHORIZATION' => authorization } }
+
+  let(:authorization) do
+    ActionController::HttpAuthentication::Basic.encode_credentials('username', 'password')
+  end
 
   describe 'POST api/v1/nps' do
     let(:params) do
@@ -16,9 +20,19 @@ RSpec.describe Api::V1::NpsController, type: :request do
     end
     let(:score) { 5 }
 
+    context 'unauthorized request' do
+      let(:authorization) do
+        ActionController::HttpAuthentication::Basic.encode_credentials('badname', 'badpassword')
+      end
+
+      it 'does not create a new nps' do
+        expect { subject }.to_not change { Nps.count }
+        expect(response.status).to eq(401)
+      end
+    end
+
     it 'creates a new nps' do
       expect { subject }.to change { Nps.count }.by(1)
-
       expect(response.status).to eq(201)
     end
 
@@ -64,7 +78,7 @@ RSpec.describe Api::V1::NpsController, type: :request do
   end
 
   describe 'GET api/v1/nps' do
-    subject { get '/api/v1/nps', params: params }
+    subject { get '/api/v1/nps', params: params,  headers: { 'HTTP_AUTHORIZATION' => authorization } }
     let(:params) do
       {
         touchpoint: 'realtor_feedback',
@@ -74,6 +88,18 @@ RSpec.describe Api::V1::NpsController, type: :request do
     end
 
     let!(:saved_nps) { create(:np, object_id: 1) }
+
+    context 'unauthorized request' do
+      let(:authorization) do
+        ActionController::HttpAuthentication::Basic.encode_credentials('badname', 'badpassword')
+      end
+
+      it 'raises unauthorized error' do
+        subject
+
+        expect(response.status).to eq(401)
+      end
+    end
 
     it 'returns all matching nps' do
       subject

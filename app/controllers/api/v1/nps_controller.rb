@@ -1,4 +1,8 @@
 class Api::V1::NpsController < ApplicationController
+  include ActionController::HttpAuthentication::Basic::ControllerMethods
+
+  http_basic_authenticate_with name: ENV['AUTH_USERNAME'], password: ENV['AUTH_PASSWORD']
+
   def create
     nps = Nps.find_or_initialize_by(nps_params.except(:score))
 
