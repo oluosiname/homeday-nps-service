@@ -1,34 +1,37 @@
 require 'rails_helper'
 
 RSpec.describe Api::V1::NpsController, type: :request do
-  subject { post '/api/v1/nps', params: params,  headers: { 'HTTP_AUTHORIZATION' => authorization } }
-
-  let(:token) { 'good_token' }
-
-  let(:authorization) do
-    authorization = ActionController::HttpAuthentication::Token.encode_credentials(token)
-  end
-
-  before do
-    allow(ENV).to receive(:[]).and_call_original
-    allow(ENV).to receive(:[]).with('AUTH_TOKEN').and_return('good_token')
-  end
+  subject { post '/api/v1/nps', params: params,  headers: headers }
 
   describe 'POST api/v1/nps' do
+    let(:secret) { 'shhhhh!' }
+    let(:hmac) do
+      Base64.strict_encode64(OpenSSL::HMAC.digest('sha256', secret, params.to_query))
+    end
+    let(:headers) do
+      {
+        'HTTP_X_HOMEDAY_HMAC_SHA256' => hmac
+      }
+    end
     let(:params) do
       {
-        touchpoint: 'realtor_feedback',
-        object_id: 1,
         object_class: 'realtor',
-        respondent_id: 1,
+        object_id: 1,
         respondent_class: 'seller',
-        score: score
+        respondent_id: 1,
+        score: score,
+        touchpoint: 'realtor_feedback'
       }
     end
     let(:score) { 5 }
 
+    before do
+      allow(ENV).to receive(:[]).and_call_original
+      allow(ENV).to receive(:[]).with('SHARED_SECRET').and_return('shhhhh!')
+    end
+
     context 'unauthorized request' do
-      let(:token) { 'bad_token' }
+      let(:secret) { 'loud' }
 
       it 'does not create a new nps' do
         expect { subject }.to_not change { Nps.count }
@@ -84,6 +87,17 @@ RSpec.describe Api::V1::NpsController, type: :request do
 
   describe 'GET api/v1/nps' do
     subject { get '/api/v1/nps', params: params,  headers: { 'HTTP_AUTHORIZATION' => authorization } }
+    let(:headers) { { 'HTTP_AUTHORIZATION' => authorization } }
+    let(:token) { 'good_token' }
+    let(:authorization) do
+      authorization = ActionController::HttpAuthentication::Token.encode_credentials(token)
+    end
+
+    before do
+      allow(ENV).to receive(:[]).and_call_original
+      allow(ENV).to receive(:[]).with('AUTH_TOKEN').and_return('good_token')
+    end
+
     let(:params) do
       {
         touchpoint: 'realtor_feedback',

@@ -3,9 +3,16 @@ class Api::V1::NpsController < ApplicationController
 
   include ActionController::HttpAuthentication::Token::ControllerMethods
 
-  before_action :authenticate
+  before_action :authenticate, only: :index
 
   def create
+    data = request.body.read
+    verified = verify_request(data, request.env["HTTP_X_HOMEDAY_HMAC_SHA256"])
+
+    unless verified
+      return  render json: { error: "Unauthorized request" }, status: 401
+    end
+
     nps = Nps.find_or_initialize_by(nps_params.except(:score))
 
     if nps.update(score: nps_params[:score])
@@ -25,6 +32,11 @@ class Api::V1::NpsController < ApplicationController
   end
 
   private
+
+  def verify_request(data, hmac_header)
+    calculated_hmac = Base64.strict_encode64(OpenSSL::HMAC.digest('sha256', ENV['SHARED_SECRET'], data))
+    ActiveSupport::SecurityUtils.secure_compare(calculated_hmac, hmac_header)
+  end
 
   def authenticate
     authenticate_or_request_with_http_token do |token, options|
