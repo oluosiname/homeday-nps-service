@@ -1,7 +1,9 @@
 class Api::V1::NpsController < ApplicationController
-  include ActionController::HttpAuthentication::Basic::ControllerMethods
+  #included because API, not included by default
 
-  http_basic_authenticate_with name: ENV['AUTH_USERNAME'], password: ENV['AUTH_PASSWORD']
+  include ActionController::HttpAuthentication::Token::ControllerMethods
+
+  before_action :authenticate
 
   def create
     nps = Nps.find_or_initialize_by(nps_params.except(:score))
@@ -23,6 +25,14 @@ class Api::V1::NpsController < ApplicationController
   end
 
   private
+
+  def authenticate
+    authenticate_or_request_with_http_token do |token, options|
+      # Compare the tokens in a time-constant manner, to mitigate
+      # timing attacks.
+      ActiveSupport::SecurityUtils.secure_compare(token, ENV['AUTH_TOKEN'])
+    end
+  end
 
   def nps_params
     params.permit(:score, :touchpoint, :object_id, :object_class, :respondent_id, :respondent_class)

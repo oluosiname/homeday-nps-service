@@ -3,8 +3,15 @@ require 'rails_helper'
 RSpec.describe Api::V1::NpsController, type: :request do
   subject { post '/api/v1/nps', params: params,  headers: { 'HTTP_AUTHORIZATION' => authorization } }
 
+  let(:token) { 'good_token' }
+
   let(:authorization) do
-    ActionController::HttpAuthentication::Basic.encode_credentials('username', 'password')
+    authorization = ActionController::HttpAuthentication::Token.encode_credentials(token)
+  end
+
+  before do
+    allow(ENV).to receive(:[]).and_call_original
+    allow(ENV).to receive(:[]).with('AUTH_TOKEN').and_return('good_token')
   end
 
   describe 'POST api/v1/nps' do
@@ -21,9 +28,7 @@ RSpec.describe Api::V1::NpsController, type: :request do
     let(:score) { 5 }
 
     context 'unauthorized request' do
-      let(:authorization) do
-        ActionController::HttpAuthentication::Basic.encode_credentials('badname', 'badpassword')
-      end
+      let(:token) { 'bad_token' }
 
       it 'does not create a new nps' do
         expect { subject }.to_not change { Nps.count }
@@ -90,9 +95,7 @@ RSpec.describe Api::V1::NpsController, type: :request do
     let!(:saved_nps) { create(:np, object_id: 1) }
 
     context 'unauthorized request' do
-      let(:authorization) do
-        ActionController::HttpAuthentication::Basic.encode_credentials('badname', 'badpassword')
-      end
+      let(:token) { 'bad_token' }
 
       it 'raises unauthorized error' do
         subject
